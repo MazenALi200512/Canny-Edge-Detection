@@ -4,7 +4,10 @@ RV_CXX   = riscv64-unknown-elf-g++
 HOST_FLAGS = -O2 -std=c++17 -Iinclude
 RV_FLAGS   = -O2 -std=c++17 -march=rv64gcv -Iinclude
 
-SRC = src/main.cpp
+SRC = \
+src/main.cpp \
+src/image.cpp \
+src/gaussian.cpp
 
 HOST_TARGET = build/host/canny
 RV_TARGET   = build/riscv/canny_rv
