@@ -8,7 +8,9 @@ SRC = \
 src/main.cpp \
 src/image.cpp \
 src/gaussian.cpp \
-src/sobel.cpp
+src/sobel.cpp \
+src/magnitude.cpp \
+src/direction.cpp
 
 HOST_TARGET = build/host/canny
 RV_TARGET   = build/riscv/canny_rv
