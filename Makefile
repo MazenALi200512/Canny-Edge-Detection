@@ -1,8 +1,12 @@
 HOST_CXX = g++
 RV_CXX   = riscv64-unknown-elf-g++
 
-HOST_FLAGS = -O2 -std=c++17 -Iinclude
-RV_FLAGS   = -O2 -std=c++17 -march=rv64gcv -Iinclude
+OPT ?= -O2
+HOST_FLAGS = $(OPT) -std=c++17 -Iinclude \
+-fopt-info-vec-optimized \
+-fopt-info-vec-missed
+
+RV_FLAGS   = $(OPT) -std=c++17 -march=rv64gcv -Iinclude
 
 SRC = \
 src/main.cpp \

@@ -1,0 +1,5 @@
+-O0     :   45KB    :   Run1 : 367916us , Run2 : 423042us , Run3 : 391513us
+-O2     :   29KB    :   Run1 : 109322us , Run2 : 101555us , Run3 : 105226us
+-O3     :   37KB    :   Run1 : 62552us , Run2 : 53404us , Run3 : 52737us
+-Os     :   28KB    :   Run1 : 115157us , Run2 : 100056us , Run3 : 97992us
+-Ofast  :   39KB    :   Run1 : 81401us , Run2 : 44674us , Run3 : 65013us
