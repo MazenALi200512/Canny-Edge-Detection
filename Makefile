@@ -3,6 +3,7 @@ RV_CXX   = riscv64-unknown-elf-g++
 
 OPT ?= -O2
 HOST_FLAGS = $(OPT) -std=c++17 -Iinclude \
+-pg \
 -fopt-info-vec-optimized \
 -fopt-info-vec-missed
 

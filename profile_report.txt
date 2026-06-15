@@ -1,0 +1,46 @@
+# Phase 5 – Profiling Report
+
+## Objective
+
+Profile the image-processing pipeline to identify the most time-consuming stages before implementing RISC-V Vector (RVV) intrinsics.
+
+## Methodology
+
+The application was compiled with profiling support enabled using the GNU profiler (gprof). Execution time was measured for each major pipeline stage:
+
+1. Gaussian Blur
+2. Sobel Gradient Computation
+3. Magnitude Computation
+4. Gradient Direction Computation
+
+## Results
+
+| Stage         | Percentage of Total Runtime |
+| ------------- | --------------------------- |
+| Gaussian Blur | 50.0%                       |
+| Sobel Gx/Gy   | 25.0%                       |
+| Magnitude     | 25.0%                       |
+| Direction     | ~0.0%                       |
+
+Total execution time recorded by gprof: approximately 0.04 seconds.
+
+## Analysis
+
+The profiling results show that Gaussian Blur is the dominant computational hotspot, consuming approximately half of the total execution time.
+
+Gaussian Blur and Sobel together account for approximately 75% of the overall runtime. Therefore, these stages are the primary candidates for RVV optimization.
+
+Magnitude computation also contributes a noticeable portion of the execution time, while Direction computation contributes very little and is unlikely to provide meaningful speedup if optimized.
+
+According to Amdahl’s Law, optimization effort should focus on the stages that consume the largest fraction of execution time. Optimizing Direction would provide minimal overall benefit, whereas accelerating Gaussian Blur and Sobel has the potential to significantly reduce total runtime.
+
+## Conclusion
+
+The profiling phase identified the following optimization priority:
+
+1. Gaussian Blur
+2. Sobel Gradient Computation
+3. Magnitude Computation
+4. Direction Computation
+
+Future RVV intrinsics implementation should focus primarily on Gaussian Blur and Sobel, since together they represent approximately 75% of total execution time.
