@@ -31,5 +31,22 @@ run:
 clean:
 	rm -rf build
 
+TEST_SRC = \
+tests/test_gaussian.cpp \
+tests/test_sobel.cpp \
+tests/test_magnitude.cpp \
+tests/test_direction.cpp
+
 test:
-	@echo "GoogleTest will be added in Phase 3"
+	mkdir -p build/tests
+	$(HOST_CXX) $(HOST_FLAGS) \
+	$(TEST_SRC) \
+	src/gaussian.cpp \
+	src/sobel.cpp \
+	src/magnitude.cpp \
+	src/direction.cpp \
+	src/image.cpp \
+	-lgtest -lgtest_main -pthread \
+	-o build/tests/tests
+
+	./build/tests/tests
