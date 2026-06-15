@@ -17,6 +17,9 @@ src/sobel.cpp \
 src/magnitude.cpp \
 src/direction.cpp
 
+RVV_SRC = \
+rvv/magnitude_rvv.cpp
+
 HOST_TARGET = build/host/canny
 RV_TARGET   = build/riscv/canny_rv
 
@@ -26,7 +29,7 @@ all:
 
 canny_rv:
 	mkdir -p build/riscv
-	$(RV_CXX) $(RV_FLAGS) $(SRC) -o $(RV_TARGET)
+	$(RV_CXX) $(RV_FLAGS) $(SRC) $(RVV_SRC) -o $(RV_TARGET)
 
 run:
 	qemu-riscv64 \

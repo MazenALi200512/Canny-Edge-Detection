@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <chrono>
+#include <filesystem>
 
 #include "image.hpp"
 #include "gaussian.hpp"
@@ -11,11 +12,26 @@
 
 int main()
 {
-    Image img = loadRawImage("images/input/horizontal.raw", 1000, 1000);
+    // std::cout<< std::filesystem::current_path()<< std::endl;
+
+    // Image img = loadRawImage("images/input/horizontal.raw", 1000, 1000);
+    Image img(1000,1000);
+    for(int y = 0; y < 1000; y++)
+    {
+        for(int x = 0; x < 1000; x++)
+        {
+            if(y < 500)
+                img.at(x,y) = 0;
+            else
+                img.at(x,y) = 255;
+        }
+    }
+    // Image img = loadRawImage("/mnt/d/Projects/Project_Embedded/project/images/input/horizontal.raw", 1000, 1000);
 
     auto start = std::chrono::high_resolution_clock::now();
     Image blur = gaussianBlur(img);
     saveRawImage("images/output/blur.raw", blur);
+    // saveRawImage("/mnt/d/Projects/Project_Embedded/project/images/output/blur_rv.raw", blur);
 
     Gradient grad = sobel(blur);
     Image gxImg(1000, 1000);
@@ -35,6 +51,16 @@ int main()
     }
 
     Image magL1 = magnitudeL1(grad);
+
+    Image magRVV = magnitudeL1_rvv(grad);
+    int mismatches = 0;
+    for(size_t i = 0; i < magL1.data.size(); i++)
+    {
+        if(magL1.data[i] != magRVV.data[i])
+            mismatches++;
+    }
+    std::cout<< "Magnitude RVV mismatches = "<< mismatches << std::endl;
+
     Image magL2 = magnitudeL2(grad);
 
     Image dir = gradientDirection(grad);

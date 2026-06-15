@@ -4,3 +4,5 @@
 
 Image magnitudeL1(const Gradient& grad);
 Image magnitudeL2(const Gradient& grad);
+
+Image magnitudeL1_rvv(const Gradient& grad);
