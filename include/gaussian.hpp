@@ -3,3 +3,4 @@
 #include "image.hpp"
 
 Image gaussianBlur(const Image& input);
+Image gaussianBlur_rvv(const Image& input);
