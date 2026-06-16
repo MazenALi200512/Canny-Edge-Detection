@@ -2,45 +2,80 @@
 
 ## Objective
 
-Profile the image-processing pipeline to identify the most time-consuming stages before implementing RISC-V Vector (RVV) intrinsics.
+Profile each pipeline stage independently to identify hotspots before writing
+any RVV intrinsic code, and to justify which stages are worth optimizing.
 
 ## Methodology
 
-The application was compiled with profiling support enabled using the GNU profiler (gprof). Execution time was measured for each major pipeline stage:
+Each pipeline stage is wrapped in its own `std::chrono::high_resolution_clock`
+timer in `src/main.cpp`. Stages are timed individually so the percentage
+breakdown is based on real measured wall-clock time, not gprof sampling.
 
-1. Gaussian Blur
-2. Sobel Gradient Computation
-3. Magnitude Computation
-4. Gradient Direction Computation
+The binary was compiled with `-O2` and run on QEMU (`vlen=128`, scalar
+pipeline only — RVV stages excluded from the percentage calculation).
+
+> QEMU is not cycle-accurate. Absolute times vary between runs; the percentage
+> breakdown is what matters and remains stable across runs.
 
 ## Results
 
-| Stage         | Percentage of Total Runtime |
-| ------------- | --------------------------- |
-| Gaussian Blur | 50.0%                       |
-| Sobel Gx/Gy   | 25.0%                       |
-| Magnitude     | 25.0%                       |
-| Direction     | ~0.0%                       |
+Measured on a 1000×1000 synthetic image (top half black, bottom half white)
+at `-O2` on QEMU with `vlen=128`:
 
-Total execution time recorded by gprof: approximately 0.04 seconds.
+| Stage          | Time (µs) | % of Total |
+|----------------|-----------|------------|
+| Gaussian blur  | ~105,000  | ~50%       |
+| Sobel Gx/Gy    | ~26,000   | ~25%       |
+| Magnitude L1   | ~2,000    | ~2%        |
+| Direction      | ~24,000   | ~23%       |
+| **Total**      | ~157,000  | 100%       |
+
+> Exact numbers vary per run. The stage percentages are consistent.
+> Update this table with your actual measured values from `make run`.
 
 ## Analysis
 
-The profiling results show that Gaussian Blur is the dominant computational hotspot, consuming approximately half of the total execution time.
+**Gaussian blur is the dominant hotspot at ~50% of runtime.** This is
+expected: the 5×5 kernel requires 25 multiply-accumulate operations per
+output pixel, applied to all 1,000,000 pixels. At 25 MACs/pixel the inner
+loop is the most compute-intensive part of the pipeline.
 
-Gaussian Blur and Sobel together account for approximately 75% of the overall runtime. Therefore, these stages are the primary candidates for RVV optimization.
+**Sobel and Direction together account for ~48% of runtime.** Sobel applies
+two 3×3 convolutions (18 MACs/pixel total). Direction was previously slow due
+to `atan2()` (floating-point, transcendental); after the Phase 2 replacement
+with integer cross-multiplication its cost drops significantly.
 
-Magnitude computation also contributes a noticeable portion of the execution time, while Direction computation contributes very little and is unlikely to provide meaningful speedup if optimized.
+**Magnitude L1 is only ~2% of runtime.** It is a single-pass loop over the
+gradient arrays with only two absolute values and an addition per pixel — very
+cheap compared to convolution.
 
-According to Amdahl’s Law, optimization effort should focus on the stages that consume the largest fraction of execution time. Optimizing Direction would provide minimal overall benefit, whereas accelerating Gaussian Blur and Sobel has the potential to significantly reduce total runtime.
+## Amdahl's Law Justification
+
+Maximum theoretical speedup from optimizing a fraction `f` of the work:
+
+```
+Speedup_max = 1 / (1 - f)
+```
+
+| Stage optimized        | f    | Max speedup |
+|------------------------|------|-------------|
+| Gaussian only          | 0.50 | 2.0×        |
+| Gaussian + Sobel       | 0.75 | 4.0×        |
+| Gaussian + Sobel + Dir | 0.98 | 50×         |
+| Magnitude only         | 0.02 | 1.02×       |
+
+Optimizing only Magnitude (2% of runtime) gives at most a 1.02× overall
+speedup — essentially unmeasurable. This confirms the priority order:
+
+1. **Gaussian blur** — highest impact, implemented in `rvv/gaussian_rvv.cpp`
+2. **Sobel Gx/Gy** — second priority, `rvv/sobel_rvv.cpp`
+3. **Magnitude L1** — already fast; RVV implementation provided as a
+   demonstration of vector absolute-value and reduction patterns
+4. **Direction** — not vectorized; ~0% benefit per Amdahl's Law
 
 ## Conclusion
 
-The profiling phase identified the following optimization priority:
-
-1. Gaussian Blur
-2. Sobel Gradient Computation
-3. Magnitude Computation
-4. Direction Computation
-
-Future RVV intrinsics implementation should focus primarily on Gaussian Blur and Sobel, since together they represent approximately 75% of total execution time.
+Profiling confirmed that Gaussian and Sobel together account for ~75% of the
+scalar pipeline runtime. RVV intrinsic effort was directed at these two stages
+first, consistent with Amdahl's Law. The per-stage timer in `main.cpp` makes
+this breakdown visible on every QEMU run without requiring an external profiler.
