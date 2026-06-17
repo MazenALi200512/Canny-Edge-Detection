@@ -5,7 +5,6 @@ OPT ?= -O0
 HOST_FLAGS = $(OPT) -std=c++17 -Iinclude 
 RV_FLAGS   = $(OPT) -std=c++17 -march=rv64gcv -Iinclude
 
-VLEN ?= 256
 
 SRC = \
 src/main.cpp \
@@ -22,6 +21,7 @@ rvv/sobel_rvv.cpp
 
 HOST_STUB = rvv/rvv_stub.cpp
 
+
 HOST_TARGET = build/host/canny
 RV_TARGET   = build/riscv/canny_rv
 
@@ -31,7 +31,9 @@ all:
 
 canny_rv:
 	mkdir -p build/riscv
-	$(RV_CXX) $(RV_FLAGS) $(SRC) $(RVV_SRC) -o $(RV_TARGET)
+	$(RV_CXX) $(RV_FLAGS) $(SRC) $(HOST_STUB) -o $(RV_TARGET)
+
+VLEN ?= 128
 
 run:
 	qemu-riscv64 \
