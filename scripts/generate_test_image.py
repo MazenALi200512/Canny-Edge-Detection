@@ -51,11 +51,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-WIDTH = 100
-HEIGHT = 100
+WIDTH = 1000
+HEIGHT = 1000
 
 img = np.fromfile(
-    "../images/output/blur.raw",
+    "../images/output/blursep.raw",
     dtype=np.uint8
 ).reshape(HEIGHT, WIDTH)
 

@@ -18,45 +18,41 @@ static long long us(TimePoint a, TimePoint b)
 
 int main()
 {
-    // Synthetic test image: 1000x1000, top half black / bottom half white.
-    // Produces a strong horizontal edge at y=500 for meaningful gradient output.
     Image img(1000, 1000);
     for(int y = 0; y < 1000; y++)
         for(int x = 0; x < 1000; x++)
             img.at(x, y) = (y < 500) ? 0 : 255;
 
-    // -------------------------------------------------------------------------
-    // Phase 5 profiling: each stage timed independently so percentages are real.
-    // -------------------------------------------------------------------------
-
-    // --- Gaussian blur (scalar) ---
+    // --- Gaussian blur (scalar,seperable,rvv) ---
     auto t0  = Clock::now();
     Image blur = gaussianBlur(img);
     auto t1  = Clock::now();
     long long t_gauss_scalar = us(t0, t1);
 
-    // --- Gaussian blur (RVV) — averaged over 10 runs ---
-    // Pre-allocate output once and warmup before the timer.
-    // blurRVV is reused each iteration so zero allocation happens inside
-    // the timed region — same pattern as magnitude inplace benchmarks.
-    Image blurRVV(img.width, img.height);
+    auto ts0 = Clock::now();
+    Image blurSep = gaussianBlurSeparable(img);
+    auto ts1 = Clock::now();
+    long long t_gauss_sep = us(ts0, ts1);
+
     auto t2 = Clock::now();
-    blurRVV = gaussianBlur_rvv(img);
+    Image blurRVV = gaussianBlur_rvv(img);
     auto t3 = Clock::now();
     long long t_gauss_rvv = us(t2, t3);
 
     // Correctness check
-    int gaussMismatch = 0;
-    for(size_t i = 0; i < blur.data.size(); i++)
-        if(blur.data[i] != blurRVV.data[i]) gaussMismatch++;
+    int gaussMismatch_scalar_sep = 0;
+    for(size_t i = 0; i < static_cast<size_t>(blur.width) * blur.height; i++)
+        if(blur.data[i] != blurSep.data[i]) gaussMismatch_scalar_sep++;
+    int gaussMismatch_scalar_rvv = 0;
+    for(size_t i = 0; i < static_cast<size_t>(blur.width) * blur.height; i++)
+        if(blur.data[i] != blurRVV.data[i]) gaussMismatch_scalar_rvv++;
 
-    // --- Sobel (scalar) ---
+    // --- Sobel (scalar,rvv) ---
     auto t4 = Clock::now();
     Gradient grad = sobel(blur);
     auto t5 = Clock::now();
     long long t_sobel = us(t4, t5);
 
-    // --- Sobel (RVV) ---
     auto t4rvv = Clock::now();
     Gradient gradRVV = sobel_rvv(blur);
     auto t5rvv = Clock::now();
@@ -64,29 +60,21 @@ int main()
 
     // Correctness check
     int sobelMismatch = 0;
-
     for(size_t i = 0; i < grad.gx.size(); i++)
     {
         if(grad.gx[i] != gradRVV.gx[i])
             sobelMismatch++;
-
         if(grad.gy[i] != gradRVV.gy[i])
             sobelMismatch++;
     }
 
-    // --- Magnitude L1 (scalar) — averaged over 10 runs ---
-    // Pre-allocate output once. Warmup run touches all pages so the OS maps
-    // physical memory before the timer starts. Timed loop reuses the same
-    // buffer — zero heap activity inside the measured region.
+    // --- Magnitude L1 (scalar,rvv)---
     Image magL1(grad.width, grad.height);
     auto t6 = Clock::now();
     magnitudeL1_inplace(grad, magL1);
     auto t7 = Clock::now();
     long long t_mag_scalar = us(t6, t7);
 
-    // --- Magnitude L1 (RVV) — averaged over 10 runs ---
-    // Same pattern: pre-allocate + warmup outside the timer, then pure kernel
-    // in the loop. This is an apples-to-apples comparison with the scalar above.
     Image magRVV(grad.width, grad.height);
     auto t8 = Clock::now();
     magnitudeL1_rvv_inplace(grad, magRVV);
@@ -94,7 +82,7 @@ int main()
     long long t_mag_rvv = us(t8, t9);
 
     int magMismatch = 0;
-    for(size_t i = 0; i < magL1.data.size(); i++)
+    for(size_t i = 0; i < static_cast<size_t>(magL1.width) * magL1.height; i++)
         if(magL1.data[i] != magRVV.data[i]) magMismatch++;
 
     // --- Magnitude L2 ---
@@ -113,32 +101,29 @@ int main()
     // Per-stage timing report
     // -------------------------------------------------------------------------
     long long t_total = t_gauss_scalar + t_sobel + t_mag_scalar + t_dir;
-
-    auto pct = [&](long long t) -> double {
-        return 100.0 * t / t_total;
-    };
+    auto pct = [&](long long t) -> double {return 100.0 * t / t_total;};
 
     std::cout << "\n=== Per-Stage Timing (scalar pipeline) ===\n";
-    std::cout << "Gaussian blur   : " << t_gauss_scalar << " us  ("
-            << pct(t_gauss_scalar) << "%)\n";
-    std::cout << "Sobel Gx/Gy     : " << t_sobel        << " us  ("
-            << pct(t_sobel)        << "%)\n";
-    std::cout << "Magnitude L1    : " << t_mag_scalar   << " us  ("
-            << pct(t_mag_scalar)   << "%)\n";
-    std::cout << "Direction       : " << t_dir          << " us  ("
-            << pct(t_dir)          << "%)\n";
-    std::cout << "Total (scalar)  : " << t_total        << " us\n";
+    std::cout << "Gaussian blur   : " << t_gauss_scalar << " us  ("<< pct(t_gauss_scalar) << "%)\n";
+    std::cout << "Sobel Gx/Gy     : " << t_sobel        << " us  ("<< pct(t_sobel)        << "%)\n";
+    std::cout << "Magnitude L1    : " << t_mag_scalar   << " us  ("<< pct(t_mag_scalar)   << "%)\n";
+    std::cout << "Direction       : " << t_dir          << " us  ("<< pct(t_dir)          << "%)\n";
+    std::cout << "Total (scalar)  : " << t_total        << " us\n\n";
 
     std::cout << "\n=== RVV vs Scalar ===\n";
     std::cout << "Gaussian scalar : " << t_gauss_scalar << " us\n";
+    std::cout << "Gaussian Separable : " << t_gauss_sep << " us\n";
     std::cout << "Gaussian RVV    : " << t_gauss_rvv    << " us\n";
-    std::cout << "Gaussian mismatches: " << gaussMismatch << "\n";
-    std::cout << "Magnitude scalar: " << t_mag_scalar   << " us\n";
-    std::cout << "Magnitude RVV   : " << t_mag_rvv      << " us\n";
-    std::cout << "Magnitude mismatches: " << magMismatch << "\n";
+    std::cout << "Gaussian_Scalar_Seperable mismatches: " << gaussMismatch_scalar_sep << "\n";
+    std::cout << "Gaussian_Scalar_RVV mismatches: " << gaussMismatch_scalar_rvv << "\n\n";
+
     std::cout << "Sobel scalar    : " << t_sobel << " us\n";
     std::cout << "Sobel RVV       : " << t_sobel_rvv << " us\n";
-    std::cout << "Sobel mismatches: " << sobelMismatch << "\n";
+    std::cout << "Sobel mismatches: " << sobelMismatch << "\n\n";
+
+    std::cout << "Magnitude scalar: " << t_mag_scalar   << " us\n";
+    std::cout << "Magnitude RVV   : " << t_mag_rvv      << " us\n";
+    std::cout << "Magnitude mismatches: " << magMismatch << "\n\n";
 
     std::cout << "\n=== Sanity Checks ===\n";
     std::cout << "Center Gx        : " << grad.gx[500 * 1000 + 500] << "\n";
@@ -148,6 +133,7 @@ int main()
     std::cout << "Center Direction : " << (int)dir.at(500, 500)     << "\n";
 
     saveRawImage("images/output/blur.raw", blur);
+    saveRawImage("images/output/blursep.raw", blurSep);
 
     return 0;
 }

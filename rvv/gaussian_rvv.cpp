@@ -117,7 +117,7 @@ static void rvv_row_interior(const Image& input, Image& output, int y)
 
         for(int ky = -2; ky <= 2; ky++)
         {
-            const uint8_t* row = input.data.data() + (y + ky) * W;
+            const uint8_t* row = input.data + (y + ky) * W;
 
             for(int kx = -2; kx <= 2; kx++)
             {
@@ -180,7 +180,7 @@ static void rvv_row_interior(const Image& input, Image& output, int y)
 
         // Step 8: store vl bytes to output row y.
         // vse8_v_u8m1: vector store 8-bit, LMUL=1.
-        __riscv_vse8_v_u8m1(output.data.data() + y * W + x, out8, vl);
+        __riscv_vse8_v_u8m1(output.data + y * W + x, out8, vl);
 
         x += (int)vl;
     }

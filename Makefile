@@ -1,10 +1,11 @@
 HOST_CXX = g++
 RV_CXX   = riscv64-unknown-elf-g++
 
-OPT ?= -O2
+OPT ?= -O0
 HOST_FLAGS = $(OPT) -std=c++17 -Iinclude 
-
 RV_FLAGS   = $(OPT) -std=c++17 -march=rv64gcv -Iinclude
+
+VLEN ?= 256
 
 SRC = \
 src/main.cpp \
@@ -34,13 +35,12 @@ canny_rv:
 
 run:
 	qemu-riscv64 \
-	-cpu rv64,v=true,vlen=128 \
+	-cpu rv64,v=true,vlen=$(VLEN) \
 	$(RV_TARGET)
 
-# QEMU-side RVV equivalence test — verifies scalar vs RVV at VLEN 128/256/512
 EQUIV_TARGET = build/riscv/test_rvv_equiv
 
-test_equiv:
+test_eq:
 	mkdir -p build/riscv
 	$(RV_CXX) $(RV_FLAGS) \
 	tests/test_rvv_equivalence.cpp \

@@ -1,11 +1,11 @@
 #include "sobel.hpp"
-static const int SOBEL_X[3][3] =
+static const int16_t SOBEL_X[3][3] =
 {
     {-1, 0, 1},
     {-2, 0, 2},
     {-1, 0, 1}
 };
-static const int SOBEL_Y[3][3] =
+static const int16_t SOBEL_Y[3][3] =
 {
     {-1,-2,-1},
     { 0, 0, 0},
@@ -13,9 +13,7 @@ static const int SOBEL_Y[3][3] =
 };
 Gradient sobel(const Image& input)
 {
-    Gradient grad(
-        input.width,
-        input.height);
+    Gradient grad(input.width, input.height);
     
     for(int y = 0; y < input.height; y++)
     {
