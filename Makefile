@@ -16,7 +16,8 @@ src/direction.cpp
 
 RVV_SRC = \
 rvv/magnitude_rvv.cpp \
-rvv/gaussian_rvv.cpp
+rvv/gaussian_rvv.cpp \
+rvv/sobel_rvv.cpp
 
 HOST_STUB = rvv/rvv_stub.cpp
 
@@ -33,7 +34,7 @@ canny_rv:
 
 run:
 	qemu-riscv64 \
-	-cpu rv64,v=true,vlen=256 \
+	-cpu rv64,v=true,vlen=128 \
 	$(RV_TARGET)
 
 # QEMU-side RVV equivalence test — verifies scalar vs RVV at VLEN 128/256/512

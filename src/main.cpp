@@ -40,45 +40,59 @@ int main()
     // blurRVV is reused each iteration so zero allocation happens inside
     // the timed region — same pattern as magnitude inplace benchmarks.
     Image blurRVV(img.width, img.height);
-    { Image _w = gaussianBlur_rvv(img); (void)_w; }  // warmup: page-fault here
     auto t2 = Clock::now();
-    for(int r = 0; r < 10; r++) blurRVV = gaussianBlur_rvv(img);
+    blurRVV = gaussianBlur_rvv(img);
     auto t3 = Clock::now();
-    long long t_gauss_rvv = us(t2, t3) / 10;
+    long long t_gauss_rvv = us(t2, t3);
 
     // Correctness check
     int gaussMismatch = 0;
     for(size_t i = 0; i < blur.data.size(); i++)
         if(blur.data[i] != blurRVV.data[i]) gaussMismatch++;
 
-    // --- Sobel ---
-    auto t4  = Clock::now();
+    // --- Sobel (scalar) ---
+    auto t4 = Clock::now();
     Gradient grad = sobel(blur);
-    auto t5  = Clock::now();
+    auto t5 = Clock::now();
     long long t_sobel = us(t4, t5);
+
+    // --- Sobel (RVV) ---
+    auto t4rvv = Clock::now();
+    Gradient gradRVV = sobel_rvv(blur);
+    auto t5rvv = Clock::now();
+    long long t_sobel_rvv = us(t4rvv, t5rvv);
+
+    // Correctness check
+    int sobelMismatch = 0;
+
+    for(size_t i = 0; i < grad.gx.size(); i++)
+    {
+        if(grad.gx[i] != gradRVV.gx[i])
+            sobelMismatch++;
+
+        if(grad.gy[i] != gradRVV.gy[i])
+            sobelMismatch++;
+    }
 
     // --- Magnitude L1 (scalar) — averaged over 10 runs ---
     // Pre-allocate output once. Warmup run touches all pages so the OS maps
     // physical memory before the timer starts. Timed loop reuses the same
     // buffer — zero heap activity inside the measured region.
     Image magL1(grad.width, grad.height);
-    magnitudeL1_inplace(grad, magL1);          // warmup: page-fault here, not below
     auto t6 = Clock::now();
-    for(int r = 0; r < 10; r++) magnitudeL1_inplace(grad, magL1);
+    magnitudeL1_inplace(grad, magL1);
     auto t7 = Clock::now();
-    long long t_mag_scalar = us(t6, t7) / 10;
+    long long t_mag_scalar = us(t6, t7);
 
     // --- Magnitude L1 (RVV) — averaged over 10 runs ---
     // Same pattern: pre-allocate + warmup outside the timer, then pure kernel
     // in the loop. This is an apples-to-apples comparison with the scalar above.
     Image magRVV(grad.width, grad.height);
-    magnitudeL1_rvv_inplace(grad, magRVV);     // warmup
     auto t8 = Clock::now();
-    for(int r = 0; r < 10; r++) magnitudeL1_rvv_inplace(grad, magRVV);
+    magnitudeL1_rvv_inplace(grad, magRVV);
     auto t9 = Clock::now();
-    long long t_mag_rvv = us(t8, t9) / 10;
+    long long t_mag_rvv = us(t8, t9);
 
-    // Correctness check (last iteration of both loops written into magL1 / magRVV)
     int magMismatch = 0;
     for(size_t i = 0; i < magL1.data.size(); i++)
         if(magL1.data[i] != magRVV.data[i]) magMismatch++;
@@ -122,6 +136,9 @@ int main()
     std::cout << "Magnitude scalar: " << t_mag_scalar   << " us\n";
     std::cout << "Magnitude RVV   : " << t_mag_rvv      << " us\n";
     std::cout << "Magnitude mismatches: " << magMismatch << "\n";
+    std::cout << "Sobel scalar    : " << t_sobel << " us\n";
+    std::cout << "Sobel RVV       : " << t_sobel_rvv << " us\n";
+    std::cout << "Sobel mismatches: " << sobelMismatch << "\n";
 
     std::cout << "\n=== Sanity Checks ===\n";
     std::cout << "Center Gx        : " << grad.gx[500 * 1000 + 500] << "\n";
