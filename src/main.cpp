@@ -29,18 +29,6 @@ int main()
     auto t1  = Clock::now();
     long long t_gauss_scalar = us(t0, t1);*/
 
-    /*Image blur(img.width, img.height);
-    auto t0 = Clock::now();
-    for(int i = 0; i < 100; i++)
-        blur = gaussianBlur(img);
-    auto t1 = Clock::now();
-    long long t_gauss_scalar = us(t0, t1)/100;*/
-
-    /*auto ts0 = Clock::now();
-    Image blurSep = gaussianBlurSeparable(img);
-    auto ts1 = Clock::now();
-    long long t_gauss_sep = us(ts0, ts1);*/
-
     Image blurSep(img.width, img.height);
     auto ts0 = Clock::now();
     for(int i = 0; i < 100; i++)
@@ -68,12 +56,6 @@ int main()
     for(size_t i = 0; i < static_cast<size_t>(blurSep.width) * blurSep.height; i++)
         if(blurSep.data[i] != blurRVV.data[i]) gaussMismatch_scalar_rvv++;
 
-    // --- Sobel (scalar,rvv) ---
-    /*auto t4 = Clock::now();
-    Gradient grad = sobel(blur);
-    auto t5 = Clock::now();
-    long long t_sobel = us(t4, t5);*/
-
     Gradient grad(blurSep.width, blurSep.height);
     auto t4 = Clock::now();
     for(int i=0;i<100;i++)
@@ -81,57 +63,12 @@ int main()
     auto t5 = Clock::now();
     long long t_sobel = us(t4,t5)/100;
 
-    // auto t4rvv = Clock::now();
-    // Gradient gradRVV = sobel_rvv(blurSep);
-    // auto t5rvv = Clock::now();
-    // long long t_sobel_rvv = us(t4rvv, t5rvv);
-
-    /*Gradient gradRVV;
-    auto t4rvv = Clock::now();
-    for(int i=0;i<100;i++)
-        gradRVV = sobel_rvv(blur);
-    auto t5rvv = Clock::now();
-    long long t_sobel_rvv = us(t4rvv,t5rvv)/100;*/
-
-    // int sobelMismatch = 0;
-    // for(size_t i = 0; i < grad.gx.size(); i++)
-    // {
-    //     if(grad.gx[i] != gradRVV.gx[i])
-    //         sobelMismatch++;
-    //     if(grad.gy[i] != gradRVV.gy[i])
-    //         sobelMismatch++;
-    // }
-
-    // --- Magnitude L1 (scalar,rvv)---
-    /*Image magL1(grad.width, grad.height);
-    auto t6 = Clock::now();
-    magnitudeL1_inplace(grad, magL1);
-    auto t7 = Clock::now();
-    long long t_mag_l1 = us(t6, t7);*/
-
     Image magL1(grad.width, grad.height);
     auto t6 = Clock::now();
     for(int i=0;i<100;i++)
         magnitudeL1_inplace(grad, magL1);
     auto t7 = Clock::now();
     long long t_mag_l1 = us(t6, t7)/100;
-
-    // Image magRVV(grad.width, grad.height);
-    // auto t8 = Clock::now();
-    // magnitudeL1_rvv_inplace(grad, magRVV);
-    // auto t9 = Clock::now();
-    // long long t_mag_rvv = us(t8, t9);
-
-    /*Image magRVV(grad.width, grad.height);
-    auto t8 = Clock::now();
-    for(int i=0;i<100;i++)
-        magnitudeL1_rvv_inplace(grad, magRVV);
-    auto t9 = Clock::now();
-    long long t_mag_rvv = us(t8, t9);*/
-
-    // int magMismatch = 0;
-    // for(size_t i = 0; i < static_cast<size_t>(magL1.width) * magL1.height; i++)
-    //     if(magL1.data[i] != magRVV.data[i]) magMismatch++;
 
     // --- Magnitude L2 ---
     /*auto t10  = Clock::now();
@@ -179,15 +116,6 @@ int main()
     std::cout << "Gaussian RVV    : " << t_gauss_rvv    << " us\n";
     // std::cout << "Gaussian_Scalar_Seperable mismatches: " << gaussMismatch_scalar_sep << "\n";
     std::cout << "Gaussian_Scalar_RVV mismatches: " << gaussMismatch_scalar_rvv << "\n\n";
-
-    /*std::cout << "Sobel scalar    : " << t_sobel << " us\n";
-    std::cout << "Sobel RVV       : " << t_sobel_rvv << " us\n";
-    std::cout << "Sobel mismatches: " << sobelMismatch << "\n\n";
-
-    std::cout << "Magnitude scalar L1: " << t_mag_l1     << " us\n";
-    std::cout << "Magnitude RVV    L1: " << t_mag_rvv    << " us\n";
-    std::cout << "Magnitude scalar L2: " << t_mag_l2     << " us\n";
-    std::cout << "Magnitude mismatches: " << magMismatch << "\n\n";*/
 
     std::cout << "\n=== Sanity Checks ===\n";
     std::cout << "Center Gx        : " << grad.gx[img.height/2 * img.width + img.width/2] << "\n";
