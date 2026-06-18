@@ -19,10 +19,10 @@ static const int16_t GAUSS_SEPARABLE[5] =
 
 static constexpr int32_t SEPARABLE_SUM = 17;
 
-Image gaussianBlur(const Image& input)
+/*Image gaussianBlur(const Image& input)
 {
     return convolve2D<uint8_t, int32_t, int16_t>(input, GAUSS_KERNEL, 5, 5, KERNEL_SUM);
-}
+}*/
 
 Image gaussianBlurSeparable(const Image& input)
 {

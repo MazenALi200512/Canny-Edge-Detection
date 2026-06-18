@@ -1,0 +1,6 @@
+Gaussian blur   : 5433 us  (81.6379%)
+Sobel Gx/Gy     : 125 us  (1.87829%)
+Magnitude L1    : 305 us  (4.58302%)
+Magnitude L2    : 734 us  (11.0293%)
+Direction       : 58 us  (0.871525%)
+Total (scalar)  : 6655 us

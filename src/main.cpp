@@ -18,10 +18,10 @@ static long long us(TimePoint a, TimePoint b)
 
 int main()
 {
-    Image img(1000, 1000);
-    for(int y = 0; y < 1000; y++)
-        for(int x = 0; x < 1000; x++)
-            img.at(x, y) = (y < 500) ? 0 : 255;
+    Image img(100, 100);
+    for(int y = 0; y < 100; y++)
+        for(int x = 0; x < 100; x++)
+            img.at(x, y) = (y < 50) ? 0 : 255;
 
     // --- Gaussian blur (scalar,seperable,rvv) ---
     /*auto t0  = Clock::now();
@@ -48,17 +48,17 @@ int main()
     auto ts1 = Clock::now();
     long long t_gauss_sep = us(ts0, ts1)/100;
 
-    auto t2 = Clock::now();
+    /*auto t2 = Clock::now();
     Image blurRVV = gaussianBlur_rvv(img);
     auto t3 = Clock::now();
-    long long t_gauss_rvv = us(t2, t3);
+    long long t_gauss_rvv = us(t2, t3);*/
 
-    /*Image blurRVV(img.width, img.height);
+    Image blurRVV(img.width, img.height);
     auto t2 = Clock::now();
     for(int i = 0; i < 100; i++)
         blurRVV = gaussianBlur_rvv(img);
     auto t3 = Clock::now();
-    long long t_gauss_rvv = us(t2, t3)/100;*/
+    long long t_gauss_rvv = us(t2, t3)/100;
 
     // Correctness check
     /*int gaussMismatch_scalar_sep = 0;
@@ -166,7 +166,7 @@ int main()
     auto pct = [&](long long t) -> double {return 100.0 * t / t_total;};
 
     std::cout << "\n=== Per-Stage Timing (scalar pipeline) ===\n";
-    std::cout << "Gaussian blur   : " << t_gauss_sep << " us  ("<< pct(t_gauss_sep) << "%)\n";
+    std::cout << "Gaussian blur   : " << t_gauss_sep    << " us  ("<< pct(t_gauss_sep) << "%)\n";
     std::cout << "Sobel Gx/Gy     : " << t_sobel        << " us  ("<< pct(t_sobel)        << "%)\n";
     std::cout << "Magnitude L1    : " << t_mag_l1       << " us  ("<< pct(t_mag_l1)   << "%)\n";
     std::cout << "Magnitude L2    : " << t_mag_l2       << " us  ("<< pct(t_mag_l2)   << "%)\n";
@@ -176,25 +176,25 @@ int main()
     std::cout << "\n=== RVV vs Scalar ===\n";
     // std::cout << "Gaussian scalar : " << t_gauss_scalar << " us\n";
     std::cout << "Gaussian Separable : " << t_gauss_sep << " us\n";
-    // std::cout << "Gaussian RVV    : " << t_gauss_rvv    << " us\n";
+    std::cout << "Gaussian RVV    : " << t_gauss_rvv    << " us\n";
     // std::cout << "Gaussian_Scalar_Seperable mismatches: " << gaussMismatch_scalar_sep << "\n";
-    // std::cout << "Gaussian_Scalar_RVV mismatches: " << gaussMismatch_scalar_rvv << "\n\n";
+    std::cout << "Gaussian_Scalar_RVV mismatches: " << gaussMismatch_scalar_rvv << "\n\n";
 
-    std::cout << "Sobel scalar    : " << t_sobel << " us\n";
-    // std::cout << "Sobel RVV       : " << t_sobel_rvv << " us\n";
-    // std::cout << "Sobel mismatches: " << sobelMismatch << "\n\n";
+    /*std::cout << "Sobel scalar    : " << t_sobel << " us\n";
+    std::cout << "Sobel RVV       : " << t_sobel_rvv << " us\n";
+    std::cout << "Sobel mismatches: " << sobelMismatch << "\n\n";
 
     std::cout << "Magnitude scalar L1: " << t_mag_l1     << " us\n";
-    // std::cout << "Magnitude RVV    L1: " << t_mag_rvv    << " us\n";
+    std::cout << "Magnitude RVV    L1: " << t_mag_rvv    << " us\n";
     std::cout << "Magnitude scalar L2: " << t_mag_l2     << " us\n";
-    // std::cout << "Magnitude mismatches: " << magMismatch << "\n\n";
+    std::cout << "Magnitude mismatches: " << magMismatch << "\n\n";*/
 
     std::cout << "\n=== Sanity Checks ===\n";
-    std::cout << "Center Gx        : " << grad.gx[500 * 1000 + 500] << "\n";
-    std::cout << "Center Gy        : " << grad.gy[500 * 1000 + 500] << "\n";
-    std::cout << "Center MagL1     : " << (int)magL1.at(500, 500)   << "\n";
-    std::cout << "Center MagL2     : " << (int)magL2.at(500, 500)   << "\n";
-    std::cout << "Center Direction : " << (int)dir.at(500, 500)     << "\n";
+    std::cout << "Center Gx        : " << grad.gx[img.height/2 * img.width + img.width/2] << "\n";
+    std::cout << "Center Gy        : " << grad.gy[img.height/2 * img.width + img.width/2] << "\n";
+    std::cout << "Center MagL1     : " << (int)magL1.at(img.width/2, img.height/2)   << "\n";
+    std::cout << "Center MagL2     : " << (int)magL2.at(img.width/2, img.height/2)   << "\n";
+    std::cout << "Center Direction : " << (int)dir.at(img.width/2, img.height/2)     << "\n";
 
     /*saveRawImage("images/output/blur.raw", blur);
     saveRawImage("images/output/blursep.raw", blurSep);*/

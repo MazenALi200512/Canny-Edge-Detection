@@ -1,7 +1,7 @@
 HOST_CXX = g++
 RV_CXX   = riscv64-unknown-elf-g++
 
-OPT ?= -O0
+OPT ?= -O3
 HOST_FLAGS = $(OPT) -std=c++17 -Iinclude 
 RV_FLAGS   = $(OPT) -std=c++17 -march=rv64gcv -Iinclude
 
@@ -15,23 +15,20 @@ src/magnitude.cpp \
 src/direction.cpp
 
 RVV_SRC = \
-rvv/magnitude_rvv.cpp \
-rvv/gaussian_rvv.cpp \
-rvv/sobel_rvv.cpp
-
-HOST_STUB = rvv/rvv_stub.cpp
-
+rvv/gaussian_rvv.cpp 
+# rvv/magnitude_rvv.cpp
+# rvv/sobel_rvv.cpp
 
 HOST_TARGET = build/host/canny
 RV_TARGET   = build/riscv/canny_rv
 
 all:
 	mkdir -p build/host
-	$(HOST_CXX) $(HOST_FLAGS) $(SRC) $(HOST_STUB) -o $(HOST_TARGET)
+	$(HOST_CXX) $(HOST_FLAGS) $(SRC) -o $(HOST_TARGET)
 
 canny_rv:
 	mkdir -p build/riscv
-	$(RV_CXX) $(RV_FLAGS) $(SRC) $(HOST_STUB) -o $(RV_TARGET)
+	$(RV_CXX) $(RV_FLAGS) $(SRC) $(RVV_SRC) -o $(RV_TARGET)
 
 VLEN ?= 128
 

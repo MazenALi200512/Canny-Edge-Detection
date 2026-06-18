@@ -1,6 +1,6 @@
 Opt tpye:   Size    :   Runtime
--O0     :   1203KB  :   2117247us
--O2     :   1176KB  :   298961us
--O3     :   1180KB  :   723685us
--Os     :   1177KB  :   373889us
--Ofast  :   1180KB  :   745177us
+-O0     :   1200KB  :   18007us
+-O2     :   1176KB  :   2089us
+-O3     :   1176KB  :   6052us
+-Os     :   1176KB  :   3406us
+-Ofast  :   1176KB  :   6376us

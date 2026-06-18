@@ -1,0 +1,9 @@
+VLEN=128
+    Gaussian Separable : 5713 us
+    Gaussian RVV    : 2105 us
+VLEN=256
+    Gaussian Separable : 6421 us
+    Gaussian RVV    : 1471 us
+VLEN=512
+    Gaussian Separable : 4844 us
+    Gaussian RVV    : 1514 us

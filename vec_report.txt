@@ -1,0 +1,7 @@
+| Module       | Auto Vectorized ? | السبب                       |
+| ------------ | ----------------- | --------------------------- |
+| Gaussian     | No                | Control flow + nested loops |
+| Sobel        | No                | Nested loops                |
+| Magnitude L1 | No                | Not profitable              |
+| Magnitude L2 | No                | Not profitable              |
+| Direction    | No                | Iteration count unknown     |

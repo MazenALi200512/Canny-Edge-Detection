@@ -1,35 +1,73 @@
-#include <riscv_vector.h>
 #include "magnitude.hpp"
+#include <riscv_vector.h>
+#include <cstdint>
+#include <algorithm>
 
-static void rvv_l1_kernel(const Gradient& grad, Image& output)
+void magnitudeL1_inplace_rvv(const Gradient& grad, Image& out)
 {
     int total = grad.width * grad.height;
+
+    int maxMag = 0;
+
+    // ==========================
+    // PASS 1 (scalar max)
+    // ==========================
+    for(int i = 0; i < total; i++)
+    {
+        int mag = std::abs(grad.gx[i]) + std::abs(grad.gy[i]);
+        if(mag > maxMag)
+            maxMag = mag;
+    }
+
+    if(maxMag == 0)
+        maxMag = 1;
+
+    float scale = 255.0f / (float)maxMag;
+
+    // ==========================
+    // PASS 2 (RVV)
+    // ==========================
     int i = 0;
 
     while(i < total)
     {
-        size_t vl = __riscv_vsetvl_e16m4(total - i);
-        vint16m4_t gx = __riscv_vle16_v_i16m4(grad.gx.data() + i, vl);
-        vint16m4_t gy = __riscv_vle16_v_i16m4(grad.gy.data() + i, vl);
-        gx = __riscv_vmax_vv_i16m4(gx, __riscv_vneg_v_i16m4(gx, vl), vl);
-        gy = __riscv_vmax_vv_i16m4(gy, __riscv_vneg_v_i16m4(gy, vl), vl);
-        vint16m4_t mag = __riscv_vadd_vv_i16m4(gx, gy, vl);
-        mag = __riscv_vmin_vv_i16m4(mag, __riscv_vmv_v_x_i16m4(255, vl), vl);
-        vuint16m4_t mag_u  = __riscv_vreinterpret_v_i16m4_u16m4(mag);
-        vuint8m2_t  mag_u8 = __riscv_vnclipu_wx_u8m2(mag_u, 0, __RISCV_VXRM_RDN, vl);
-        __riscv_vse8_v_u8m2(output.data + i, mag_u8, vl);
-        i += (int)vl;
+        size_t vl = __riscv_vsetvl_e16m1(total - i);
+
+        // load
+        vint16m1_t gx = __riscv_vle16_v_i16m1(&grad.gx[i], vl);
+        vint16m1_t gy = __riscv_vle16_v_i16m1(&grad.gy[i], vl);
+
+        // abs
+        vint16m1_t ax = __riscv_vmax_vx_i16m1(gx, 0, vl);
+        vint16m1_t ay = __riscv_vmax_vx_i16m1(gy, 0, vl);
+
+        // widen to int32 BEFORE sum
+        vint32m2_t ax32 = __riscv_vwcvt_x_x_v_i32m2(ax, vl);
+        vint32m2_t ay32 = __riscv_vwcvt_x_x_v_i32m2(ay, vl);
+
+        vint32m2_t sum = __riscv_vadd_vv_i32m2(ax32, ay32, vl);
+
+        // float conversion (NOW correct type)
+        vfloat32m2_t fsum = __riscv_vfcvt_f_x_v_f32m2(sum, vl);
+
+        // scale
+        vfloat32m2_t scaled = __riscv_vfmul_vf_f32m2(fsum, scale, vl);
+
+        // back to int
+        vint32m2_t norm = __riscv_vfcvt_x_f_v_i32m2(scaled, vl);
+
+        norm = __riscv_vmin_vx_i32m2(norm, 255, vl);
+
+        // narrow properly
+        vint16m1_t tmp = __riscv_vncvt_x_x_w_i16m1(norm, vl);
+
+        vuint8m1_t out8 =
+            __riscv_vreinterpret_v_i8m1_u8m1(
+                __riscv_vreinterpret_v_i16m1_i8m1(tmp)
+            );
+
+        __riscv_vse8_v_u8m1(out.data + i, out8, vl);
+
+        i += vl;
     }
-}
-
-Image magnitudeL1_rvv(const Gradient& grad)
-{
-    Image output(grad.width, grad.height);
-    rvv_l1_kernel(grad, output);
-    return output;
-}
-
-void magnitudeL1_rvv_inplace(const Gradient& grad, Image& out)
-{
-    rvv_l1_kernel(grad, out);
 }
