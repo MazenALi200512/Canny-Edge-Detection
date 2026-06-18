@@ -36,11 +36,6 @@ int main()
     auto ts1 = Clock::now();
     long long t_gauss_sep = us(ts0, ts1)/100;
 
-    /*auto t2 = Clock::now();
-    Image blurRVV = gaussianBlur_rvv(img);
-    auto t3 = Clock::now();
-    long long t_gauss_rvv = us(t2, t3);*/
-
     Image blurRVV(img.width, img.height);
     auto t2 = Clock::now();
     for(int i = 0; i < 100; i++)
@@ -56,6 +51,7 @@ int main()
     for(size_t i = 0; i < static_cast<size_t>(blurSep.width) * blurSep.height; i++)
         if(blurSep.data[i] != blurRVV.data[i]) gaussMismatch_scalar_rvv++;
 
+    // --- Sobel ---
     Gradient grad(blurSep.width, blurSep.height);
     auto t4 = Clock::now();
     for(int i=0;i<100;i++)
@@ -63,6 +59,7 @@ int main()
     auto t5 = Clock::now();
     long long t_sobel = us(t4,t5)/100;
 
+    // --- Magnitude L2 ---
     Image magL1(grad.width, grad.height);
     auto t6 = Clock::now();
     for(int i=0;i<100;i++)
@@ -71,11 +68,6 @@ int main()
     long long t_mag_l1 = us(t6, t7)/100;
 
     // --- Magnitude L2 ---
-    /*auto t10  = Clock::now();
-    Image magL2 = magnitudeL2(grad);
-    auto t11  = Clock::now();
-    long long t_mag_l2 = us(t10, t11);*/
-
     Image magL2(grad.width, grad.height);
     auto t10  = Clock::now();
     for(int i=0;i<100;i++)
@@ -84,11 +76,6 @@ int main()
     long long t_mag_l2 = us(t10, t11)/100;
 
     // --- Direction ---
-    /*auto t12 = Clock::now();
-    Image dir = gradientDirection(grad);
-    auto t13 = Clock::now();
-    long long t_dir = us(t12, t13);*/
-
     Image dir(grad.width, grad.height);
     auto t12 = Clock::now();
     for(int i=0;i<100;i++)

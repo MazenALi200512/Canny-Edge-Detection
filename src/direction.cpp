@@ -4,7 +4,6 @@
 Image gradientDirection(const Gradient& grad)
 {
     Image output(grad.width, grad.height);
-
     for(int y = 0; y < grad.height; y++)
     {
         for(int x = 0; x < grad.width; x++)
@@ -30,6 +29,5 @@ Image gradientDirection(const Gradient& grad)
             output.at(x, y) = quantized;
         }
     }
-
     return output;
 }

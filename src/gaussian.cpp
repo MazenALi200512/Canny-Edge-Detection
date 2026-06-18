@@ -9,14 +9,11 @@ static const int16_t GAUSS_KERNEL[25] =
     4, 16, 26, 16,  4,
     1,  4,  7,  4,  1
 };
-
 static constexpr int32_t KERNEL_SUM = 273;
-
 static const int16_t GAUSS_SEPARABLE[5] =
 {
     1, 4, 7, 4, 1
 };
-
 static constexpr int32_t SEPARABLE_SUM = 17;
 
 /*Image gaussianBlur(const Image& input)

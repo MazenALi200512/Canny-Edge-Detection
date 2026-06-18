@@ -14,7 +14,6 @@ static const int16_t SOBEL_Y[3][3] =
 Gradient sobel(const Image& input)
 {
     Gradient grad(input.width, input.height);
-    
     for(int y = 0; y < input.height; y++)
     {
         for(int x = 0; x < input.width; x++)
@@ -27,12 +26,10 @@ Gradient sobel(const Image& input)
                 {
                     int nx = x + kx;
                     int ny = y + ky;
-
                     if(nx < 0 || nx >= input.width)
                         continue;
                     if(ny < 0 || ny >= input.height)
                         continue;
-
                     uint8_t pixel = input.at(nx, ny);
                     gx += pixel * SOBEL_X[ky + 1][kx + 1];
                     gy += pixel * SOBEL_Y[ky + 1][kx + 1];
