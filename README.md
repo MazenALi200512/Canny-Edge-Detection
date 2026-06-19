@@ -59,16 +59,6 @@ Test cases per stage:
 | Magnitude | L1AndL2NonZero, L1GreaterOrEqualL2, PureHorizontalGradientL1EqualsL2, ZeroGradient, Saturation |
 | Direction | VerticalEdge, HorizontalEdge, DiagonalEdge45, DiagonalEdge135, NearVertical, NearHorizontal |
 
-### QEMU-side RVV equivalence tests
-
-Verifies that each RVV kernel produces identical output to the scalar
-reference on a 100×75 image. Runs automatically at VLEN=128, 256, and 512
-to confirm vector-length-agnostic behaviour.
-
-```bash
-make test_equiv
-```
-
 ## Clean
 
 ```bash
