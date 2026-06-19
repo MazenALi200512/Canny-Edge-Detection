@@ -21,6 +21,13 @@
 # img.tofile("../images/input/vertical.raw")
 
 # import numpy as np
+# w = 100
+# h = 100
+# img = np.zeros((h, w), dtype=np.uint8)
+# img[:, :]=255
+# img.tofile("../images/input/uniform.raw")
+
+# import numpy as np
 
 # w = 100
 # h = 100
@@ -34,11 +41,6 @@
 
 # img.tofile("../images/input/diagonal.raw")
 
-# import numpy as np
-
-# img = np.full((100,100), 128, dtype=np.uint8)
-
-# img.tofile("../images/input/uniform.raw")
 
 # import numpy as np
 
@@ -48,16 +50,14 @@
 
 # img.tofile("../images/input/impulse.raw")
 
-import numpy as np
-import matplotlib.pyplot as plt
+# import numpy as np
 
-WIDTH = 1000
-HEIGHT = 1000
 
-img = np.fromfile(
-    "../images/output/blursep.raw",
-    dtype=np.uint8
-).reshape(HEIGHT, WIDTH)
-
-plt.imshow(img, cmap="gray")
-plt.show()
+# import numpy as np
+# import matplotlib.pyplot as plt
+# img = np.fromfile(
+#     "../images/input/uniform.raw",
+#     dtype=np.uint8
+# ).reshape(h, w)
+# plt.imshow(img, cmap="gray", vmin=0, vmax=255)
+# plt.show()

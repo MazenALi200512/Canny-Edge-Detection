@@ -8,7 +8,6 @@ static void l1_kernel(const Gradient& grad, Image& output)
 {
     int total = grad.width * grad.height;
     int maxMag = 0;
-
     // Pass 1: find maximum magnitude
     for(int i = 0; i < total; i++)
     {
@@ -18,7 +17,6 @@ static void l1_kernel(const Gradient& grad, Image& output)
     }
     if(maxMag == 0)
         maxMag = 1;
-
     // Pass 2: normalize to [0,255]
     for(int i = 0; i < total; i++)
     {
@@ -37,7 +35,6 @@ void magnitudeL2_inplace(const Gradient& grad, Image& out)
 {
     int total = grad.width * grad.height;
     double maxMag = 0.0;
-
     // Pass 1: find maximum magnitude
     for(int i = 0; i < total; i++)
     {
@@ -49,7 +46,6 @@ void magnitudeL2_inplace(const Gradient& grad, Image& out)
     }
     if(maxMag == 0.0)
         maxMag = 1.0;
-
     // Pass 2: normalize to [0,255]
     for(int i = 0; i < total; i++)
     {

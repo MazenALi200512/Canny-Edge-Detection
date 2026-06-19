@@ -18,6 +18,7 @@ static long long us(TimePoint a, TimePoint b)
 
 int main()
 {
+    // Image img = loadRawImage("images/input/horizontal.raw");
     Image img(100, 100);
     for(int y = 0; y < 100; y++)
         for(int x = 0; x < 100; x++)
@@ -51,6 +52,10 @@ int main()
     for(size_t i = 0; i < static_cast<size_t>(blurSep.width) * blurSep.height; i++)
         if(blurSep.data[i] != blurRVV.data[i]) gaussMismatch_scalar_rvv++;
 
+    for(size_t i = 0; i < static_cast<size_t>(blurSep.width) * blurSep.height; i++)
+        std::cout << blurSep.data[i] - blurRVV.data[i] << " ";
+    std::cout << "\n";
+
     // --- Sobel ---
     Gradient grad(blurSep.width, blurSep.height);
     auto t4 = Clock::now();
@@ -59,7 +64,7 @@ int main()
     auto t5 = Clock::now();
     long long t_sobel = us(t4,t5)/100;
 
-    // --- Magnitude L2 ---
+    // --- Magnitude L1 ---
     Image magL1(grad.width, grad.height);
     auto t6 = Clock::now();
     for(int i=0;i<100;i++)

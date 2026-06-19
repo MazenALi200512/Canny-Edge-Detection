@@ -26,10 +26,8 @@ Gradient sobel(const Image& input)
                 {
                     int nx = x + kx;
                     int ny = y + ky;
-                    if(nx < 0 || nx >= input.width)
-                        continue;
-                    if(ny < 0 || ny >= input.height)
-                        continue;
+                    if(nx < 0 || nx >= input.width) continue;
+                    if(ny < 0 || ny >= input.height) continue;
                     uint8_t pixel = input.at(nx, ny);
                     gx += pixel * SOBEL_X[ky + 1][kx + 1];
                     gy += pixel * SOBEL_Y[ky + 1][kx + 1];

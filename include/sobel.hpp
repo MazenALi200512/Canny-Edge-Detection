@@ -14,4 +14,3 @@ struct Gradient
 };
 
 Gradient sobel(const Image& input);
-Gradient sobel_rvv(const Image& input);

@@ -29,15 +29,8 @@ TEST(Gaussian, ImpulseResponse)
     img.at(10, 10) = 255;
     Image out = gaussianBlur(img);
     EXPECT_GT(out.at(10, 10), 0);
+    EXPECT_LT(out.at(10, 10), 255);
     EXPECT_EQ(out.at(9, 10), out.at(11, 10));
     EXPECT_EQ(out.at(10, 9), out.at(10, 11));
     EXPECT_EQ(out.at(9, 9), out.at(11, 11));
-}
-
-TEST(Gaussian, ReducesPeak)
-{
-    Image img(21, 21);
-    img.at(10, 10) = 255;
-    Image out = gaussianBlur(img);
-    EXPECT_LT(out.at(10, 10), 255);
 }
