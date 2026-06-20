@@ -107,7 +107,7 @@ int main()
     std::cout << "Gaussian Separable : " << t_gauss_sep << " us\n";
     std::cout << "Gaussian RVV    : " << t_gauss_rvv    << " us\n";
     // std::cout << "Gaussian_Scalar_Seperable mismatches: " << gaussMismatch_scalar_sep << "\n";
-    std::cout << "Gaussian_Scalar_RVV mismatches: " << gaussMismatch_scalar_rvv << "\n\n";
+    std::cout << "Gaussian_Seperable_RVV mismatches: " << gaussMismatch_scalar_rvv << "\n\n";
 
     std::cout << "\n=== Sanity Checks ===\n";
     std::cout << "Center Gx        : " << grad.gx[img.height/2 * img.width + img.width/2] << "\n";
